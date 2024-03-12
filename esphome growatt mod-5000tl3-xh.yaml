@@ -1,0 +1,308 @@
+esphome:
+  name: growatt-mod-5000tl3-xh
+  friendly_name: Growatt MOD 5000TL3-XH
+
+# WT32-ETH01
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: ""
+
+ota:
+
+# WT32-ETH01 ethernet
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO0_IN
+  phy_addr: 1
+  power_pin: GPIO16
+    
+web_server:
+  port: 80
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+uart:
+  id: mod_bus
+  tx_pin: 17
+  rx_pin: 5
+  baud_rate: 9600
+  
+modbus:
+  id: modbus1
+  uart_id: mod_bus
+  
+modbus_controller:
+  - id: growatt
+    # the Modbus device addr
+    address: 0x1
+    modbus_id: modbus1
+    setup_priority: -10 
+    update_interval: 20s 
+
+text_sensor:
+  - platform: template
+    name: "Status"
+    icon: mdi:eye
+    entity_category: diagnostic
+    lambda: |-
+      if ((id(status).state) == 1) {
+        return {"Normal"};
+      } else if ((id(status).state) == 0)  {
+        return {"Standby"};
+      } else if ((id(status).state) == 2)  {
+        return {"Discharge"};
+      } else if ((id(status).state) == 3)  {
+        return {"Fault"};
+      } else if ((id(status).state) == 4)  {
+        return {"Flash"};
+      } else if ((id(status).state) == 5)  {
+        return {"PV Charging"};
+      } else if ((id(status).state) == 6)  {
+        return {"AC Charging"};
+      } else if ((id(status).state) == 7)  {
+        return {"Combined Charging"};
+      } else if ((id(status).state) == 8)  {
+        return {"Combined Charging & Bypass"};
+      } else if ((id(status).state) == 9)  {
+        return {"PV Charging & Bypass"};
+      } else if ((id(status).state) == 10)  {
+        return {"AC Charging & Bypass"};
+      } else if ((id(status).state) == 11)  {
+        return {"Bypass"};
+      } else if (id(status).state == 12)  {
+        return {"PV Charge and Discharge"};
+      } else {
+        return {"Unknown"};
+      }
+
+sensor:
+  - platform: modbus_controller
+    address: 0
+    register_type: "read"
+    internal: true
+    accuracy_decimals: 0
+    id: status
+
+  - platform: modbus_controller
+    name: "PV1 DcPower"
+    address: 5
+    register_type: "read"
+    unit_of_measurement: W
+    device_class: power
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "PV1 DcVoltage"
+    address: 3
+    register_type: "read"
+    unit_of_measurement: V
+    device_class: voltage
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "PV1 DcInputCurrent"
+    address: 4
+    register_type: "read"
+    unit_of_measurement: A
+    device_class: current
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "PV2 DcPower"
+    address: 9
+    register_type: "read"
+    unit_of_measurement: W
+    device_class: power
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+        
+  - platform: modbus_controller
+    name: "PV2 DcVoltage"
+    address: 7
+    register_type: "read"
+    unit_of_measurement: V
+    device_class: voltage
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "PV2 DcInputCurrent"
+    address: 8
+    register_type: "read"
+    unit_of_measurement: A
+    device_class: current
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+
+  - platform: modbus_controller
+    name: "PV1 Energy Today"
+    address: 59
+    register_type: "read"
+    unit_of_measurement: kWh
+    device_class: energy
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "PV1 Energy Lifetime"
+    address: 61
+    register_type: "read"
+    unit_of_measurement: kWh
+    state_class: total_increasing
+    device_class: energy
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+
+  - platform: modbus_controller
+    name: "PV2 Energy Today"
+    address: 63
+    register_type: "read"
+    unit_of_measurement: kWh
+    device_class: energy
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "PV2 Energy Lifetime"
+    address: 65
+    register_type: "read"
+    unit_of_measurement: kWh
+    state_class: total_increasing
+    device_class: energy
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "AcPower"
+    address: 35
+    register_type: "read"
+    unit_of_measurement: W
+    device_class: power
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    - clamp:
+        min_value: 0
+        max_value: 6000
+        ignore_out_of_range: true
+    
+  - platform: modbus_controller
+    name: "AcFrequency"
+    address: 37
+    register_type: "read"
+    unit_of_measurement: Hz
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.01
+  
+  - platform: modbus_controller
+    name: "AcVoltage"
+    address: 38
+    register_type: "read"
+    unit_of_measurement: V
+    device_class: voltage
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+  
+  - platform: modbus_controller
+    name: "AcOutputCurrent"
+    address: 39
+    register_type: "read"
+    unit_of_measurement: A
+    device_class: current
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+
+  - platform: modbus_controller
+    name: "EnergyToday"
+    address: 53
+    register_type: "read"
+    unit_of_measurement: kWh
+    device_class: energy
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "EnergyTotal"
+    address: 55
+    register_type: "read"
+    unit_of_measurement: kWh
+    state_class: total_increasing
+    device_class: energy
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+
+    
+  - platform: modbus_controller
+    name: "Temperature"
+    address: 3093
+    register_type: "read"
+    unit_of_measurement: C
+    device_class: temperature
+    icon: mdi:thermometer
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
