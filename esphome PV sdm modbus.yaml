@@ -1,0 +1,248 @@
+esphome:
+  name: stromzahler-fotovoltaik
+  friendly_name: Stromzähler Fotovoltaik
+
+esp32:
+  board: esp32dev #wt32-eth01 funktioniert nicht zusammen mit esp-idf https://github.com/esphome/issues/issues/5644
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "xxx"
+
+ota:
+  password: "xxx"
+
+# WT32-ETH01 ethernet
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO0_IN
+  phy_addr: 1
+  power_pin: GPIO16
+    
+web_server:
+  port: 80
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+uart:
+  id: uart_id
+  tx_pin: 17
+  rx_pin: 5
+  baud_rate: 9600
+
+modbus:
+  id: modbus_id
+  uart_id: uart_id
+  
+modbus_controller:
+  - id: modbus_controller_id
+    address: 1
+    modbus_id: modbus_id
+    setup_priority: -10 
+    update_interval: 1s
+
+sensor:
+  # General
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    name: "Netzfrequenz"
+    register_type: read
+    address: 70
+    value_type: FP32
+    unit_of_measurement: Hz
+    state_class: "measurement"
+    device_class: "frequency"
+    accuracy_decimals: 3
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    id: leistung
+    name: "Leistung"
+    register_type: read
+    address: 52
+    value_type: FP32
+    unit_of_measurement: W
+    state_class: "measurement"
+    device_class: "power"
+    accuracy_decimals: 3
+    on_value: # seperate import & export
+      then:
+        - sensor.template.publish:
+            id: leistung_export
+            state: !lambda |-
+              if (id(leistung).state < 0) {
+                return id(leistung).state*(-1);
+              } else {
+                return 0.0;
+              }
+        - sensor.template.publish:
+            id: leistung_import
+            state: !lambda |-
+              if (id(leistung).state >= 0) {
+                return id(leistung).state;
+              } else {
+                return 0.0;
+              }
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    name: "Strom"
+    register_type: read
+    address: 48
+    value_type: FP32
+    device_class: "current"
+    state_class: "measurement"
+    unit_of_measurement: A
+    accuracy_decimals: 3
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    name: "Import Energie"
+    register_type: read
+    address: 72
+    value_type: FP32
+    unit_of_measurement: kWh
+    state_class: "total_increasing"
+    device_class: "energy"
+    accuracy_decimals: 3
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    name: "Export Energie"
+    register_type: read
+    address: 74
+    value_type: FP32
+    unit_of_measurement: kWh
+    state_class: "total_increasing"
+    device_class: "energy"
+    accuracy_decimals: 3
+
+  # Phasen Leistung
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    name: "L1 Leistung"
+    register_type: read
+    address: 12
+    value_type: FP32
+    unit_of_measurement: W
+    device_class: "power"
+    state_class: "measurement"
+    accuracy_decimals: 3
+    
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    name: "L2 Leistung"
+    register_type: read
+    address: 14
+    value_type: FP32
+    unit_of_measurement: W
+    device_class: "power"
+    state_class: "measurement"
+    accuracy_decimals: 3
+    
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    name: "L3 Leistung"
+    register_type: read
+    address: 16
+    value_type: FP32
+    unit_of_measurement: W
+    device_class: "power"
+    state_class: "measurement"
+    accuracy_decimals: 3
+    
+  # Phasen Spannung
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    name: "L1 Spannung"
+    register_type: read
+    address: 0
+    value_type: FP32
+    unit_of_measurement: V
+    device_class: "voltage"
+    state_class: "measurement"
+    accuracy_decimals: 3
+    
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    name: "L2 Spannung"
+    register_type: read
+    address: 2
+    value_type: FP32
+    device_class: "voltage"
+    state_class: "measurement"
+    unit_of_measurement: V
+    accuracy_decimals: 3
+    
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    name: "L3 Spannung"
+    register_type: read
+    address: 4
+    value_type: FP32
+    device_class: "voltage"
+    state_class: "measurement"
+    unit_of_measurement: V
+    accuracy_decimals: 3
+    
+  # Phasen Strom
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    name: "L1 Strom"
+    register_type: read
+    address: 6
+    value_type: FP32
+    device_class: "current"
+    state_class: "measurement"
+    unit_of_measurement: A
+    accuracy_decimals: 3
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    name: "L2 Strom"
+    register_type: read
+    address: 8
+    value_type: FP32
+    device_class: "current"
+    state_class: "measurement"
+    unit_of_measurement: A
+    accuracy_decimals: 3
+    
+  - platform: modbus_controller
+    modbus_controller_id: modbus_controller_id
+    name: "L3 Strom"
+    register_type: read
+    address: 10
+    value_type: FP32
+    device_class: "current"
+    state_class: "measurement"
+    unit_of_measurement: A
+    accuracy_decimals: 3
+
+  # Eigene Entitäten
+  - platform: template
+    name: "Leistung Export"
+    id: leistung_export
+    unit_of_measurement: W
+    device_class: "power"
+    state_class: "measurement"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Leistung Import"
+    id: leistung_import
+    unit_of_measurement: W
+    device_class: "power"
+    state_class: "measurement"
+    accuracy_decimals: 0
+    
