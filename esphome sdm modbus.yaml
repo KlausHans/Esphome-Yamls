@@ -88,7 +88,7 @@ sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_controller_id
-    name: "Import Energie"
+    name: "Energie Import"
     register_type: read
     address: 72
     value_type: FP32
@@ -99,7 +99,7 @@ sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_controller_id
-    name: "Export Energie"
+    name: "Energie Export"
     register_type: read
     address: 74
     value_type: FP32
@@ -111,7 +111,7 @@ sensor:
   # Phasen Leistung
   - platform: modbus_controller
     modbus_controller_id: modbus_controller_id
-    name: "L1 Leistung"
+    name: "Leistung L1"
     register_type: read
     address: 12
     value_type: FP32
@@ -122,7 +122,7 @@ sensor:
     
   - platform: modbus_controller
     modbus_controller_id: modbus_controller_id
-    name: "L2 Leistung"
+    name: "Leistung L2"
     register_type: read
     address: 14
     value_type: FP32
@@ -133,7 +133,7 @@ sensor:
     
   - platform: modbus_controller
     modbus_controller_id: modbus_controller_id
-    name: "L3 Leistung"
+    name: "Leistung L3"
     register_type: read
     address: 16
     value_type: FP32
@@ -145,7 +145,7 @@ sensor:
   # Phasen Spannung
   - platform: modbus_controller
     modbus_controller_id: modbus_controller_id
-    name: "L1 Spannung"
+    name: "Spannung L1"
     register_type: read
     address: 0
     value_type: FP32
@@ -156,7 +156,7 @@ sensor:
     
   - platform: modbus_controller
     modbus_controller_id: modbus_controller_id
-    name: "L2 Spannung"
+    name: "Spannung L2"
     register_type: read
     address: 2
     value_type: FP32
@@ -167,7 +167,7 @@ sensor:
     
   - platform: modbus_controller
     modbus_controller_id: modbus_controller_id
-    name: "L3 Spannung"
+    name: "Spannung L3"
     register_type: read
     address: 4
     value_type: FP32
@@ -179,7 +179,7 @@ sensor:
   # Phasen Strom
   - platform: modbus_controller
     modbus_controller_id: modbus_controller_id
-    name: "L1 Strom"
+    name: "Strom L1"
     register_type: read
     address: 6
     value_type: FP32
@@ -190,7 +190,7 @@ sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_controller_id
-    name: "L2 Strom"
+    name: "Strom L2"
     register_type: read
     address: 8
     value_type: FP32
@@ -201,7 +201,7 @@ sensor:
     
   - platform: modbus_controller
     modbus_controller_id: modbus_controller_id
-    name: "L3 Strom"
+    name: "Strom L3"
     register_type: read
     address: 10
     value_type: FP32
